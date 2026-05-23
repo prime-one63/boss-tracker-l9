@@ -345,6 +345,7 @@ function createBossCard(b, sectionColor) {
   const bossImageMap = {
     VENATUS: "img/venatus.png",
     VIORENT: "img/viorent.png",
+    VIOREN: "img/viorent.png",
     EGO: "img/ego.png",
     LIVERA: "img/livera_fool.png",
     ARANEO: "img/araneo.png",
@@ -373,14 +374,17 @@ function createBossCard(b, sectionColor) {
     SHULIAR: "img/shuliar.png",
     LARBA: "img/larba_fool.png",
     BARON: "img/baron_fool.png",
+    BARONBRAUDMORE: "img/baron_fool.png",
     CATENA: "img/catena.png",
+    CETENA: "img/catena.png",
     ORDO: "img/ordo.png",
     SECRETA: "img/secreta.png",
     SUPORE: "img/supore.png",
     ASTA: "img/asta.png",
     LIBITINA: "img/libitina.png",
     RAKAJETH: "img/rakajeth.png",
-    TUMIER: "img/tumier.png"
+    TUMIER: "img/tumier.png",
+    TUMIA: "img/tumier.png",
   };
 
   const normalizedName =
