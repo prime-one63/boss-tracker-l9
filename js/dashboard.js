@@ -270,7 +270,7 @@ async function fetchAndRenderBosses() {
       { label: "🌞 Today", color: "#007bff", data: groups.today },
       { label: "🌙 Tomorrow", color: "#6f42c1", data: groups.tomorrow },
       { label: "🌅 Coming Soon", color: "#e98e07ff", data: groups.later },
-      { label: "⌛ Passed", color: "#888888", data: groups.passed },
+      { label: "💀 Terminated", color: "#888888", data: groups.passed },
     ];
 
     sections.forEach(section => {
