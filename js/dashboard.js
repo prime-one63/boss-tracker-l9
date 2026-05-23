@@ -1,5 +1,5 @@
 import { db } from "./firebase.js";
-import { ref, get, update, runTransaction } 
+import { ref, get, update, runTransaction, remove } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 
@@ -440,8 +440,37 @@ function createBossCard(b, sectionColor) {
   info.appendChild(spawnInfo);
 
   /* ======================
-     🔹 COUNTDOWN + DISCORD + RESET/REMOVE
+     🔹 COUNTDOWN + DISCORD + NOTIFICATION
   ====================== */
+
+  // Delete button
+  const delBtn = document.createElement("button");
+  delBtn.textContent = "✕";
+  delBtn.className = "card-del-btn";
+  delBtn.title = "Delete boss";
+  delBtn.onclick = async (e) => {
+    e.stopPropagation();
+    if (!isAuthorized) {
+      const entered = prompt("Enter admin access token:");
+      if (!entered) return;
+      try {
+        const snap = await get(ref(db, "tokens/" + entered.trim()));
+        if (!snap.exists() || snap.val() !== true) {
+          alert("❌ Invalid token");
+          return;
+        }
+        isAuthorized = true;
+      } catch {
+        alert("❌ Token check failed");
+        return;
+      }
+    }
+    if (confirm(`Delete ${b.bossName}?`)) {
+      await remove(ref(db, "bosses/" + b._key));
+    }
+  };
+  card.style.position = "relative";
+  card.appendChild(delBtn);
 
   const interval = setInterval(async () => {
 
@@ -451,6 +480,7 @@ function createBossCard(b, sectionColor) {
     const isHourBoss = b.bossHour && b.bossHour !== "null";
     const isScheduleBoss = b.bossSchedule && b.bossSchedule !== "null";
 
+    // Discord 10-min warning
     if (diff > 0 && diff <= TEN_MIN) {
       const warnRef = ref(db, `bosses/${b._key}/warned10m`);
       const result = await runTransaction(warnRef, cur => cur === true ? undefined : true);
@@ -464,6 +494,7 @@ function createBossCard(b, sectionColor) {
       }
     }
 
+    // Discord spawn ping
     if (diff <= 0 && diff > -1000) {
       const spawnRef = ref(db, `bosses/${b._key}/spawnedPinged`);
       const result = await runTransaction(spawnRef, cur => cur === true ? undefined : true);
@@ -474,6 +505,18 @@ function createBossCard(b, sectionColor) {
           "🎖️ Level: " +"**"+ b.lvl +"**",
           "👑 Guild: " +"**"+ b.guild + "**"
         ));
+      }
+    }
+
+    // Browser notification at 10-min mark
+    if (diff > 0 && diff <= TEN_MIN && notificationsEnabled && Notification.permission === "granted") {
+      const nKey = `n_${b._key}`;
+      if (!sessionStorage.getItem(nKey)) {
+        new Notification(`⏳ ${b.bossName}`, {
+          body: `Spawning in ~10 min • Lv.${b.lvl} • ${b.guild}`,
+          icon: imgSrc
+        });
+        sessionStorage.setItem(nKey, "1");
       }
     }
 
@@ -499,6 +542,24 @@ function createBossCard(b, sectionColor) {
   return card;
 }
 
+
+/* ======================
+   🔹 NOTIFICATION TOGGLE
+====================== */
+
+let notificationsEnabled = localStorage.getItem("notifEnabled") === "true";
+const notifToggle = document.getElementById("notifToggle");
+
+if (notifToggle) {
+  notifToggle.checked = notificationsEnabled;
+  notifToggle.addEventListener("change", () => {
+    notificationsEnabled = notifToggle.checked;
+    localStorage.setItem("notifEnabled", notificationsEnabled);
+    if (notificationsEnabled && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  });
+}
 
 /* ======================
    🔹 INIT
