@@ -249,7 +249,7 @@ async function fetchAndRenderBosses() {
 
     bosses.sort((a,b)=>a._ts - b._ts);
 
-    const groups = { soon: [], today: [], tomorrow: [], later: [] };
+    const groups = { soon: [], passed: [], today: [], tomorrow: [], later: [] };
 
     bosses.forEach(b => {
       const nextDate = new Date(b._ts);
@@ -257,6 +257,7 @@ async function fetchAndRenderBosses() {
       const diff = b._ts - Date.now();
 
       if (diff <= TEN_MIN && diff > -FIVE_MIN) groups.soon.push(b);
+      else if (diff <= -FIVE_MIN) groups.passed.push(b);
       else if (displayNext.getFullYear() === today.y && displayNext.getMonth() === today.m && displayNext.getDate() === today.d) groups.today.push(b);
       else if (displayNext.getFullYear() === tomorrow.y && displayNext.getMonth() === tomorrow.m && displayNext.getDate() === tomorrow.d) groups.tomorrow.push(b);
       else groups.later.push(b);
@@ -269,6 +270,7 @@ async function fetchAndRenderBosses() {
       { label: "🌞 Today", color: "#007bff", data: groups.today },
       { label: "🌙 Tomorrow", color: "#6f42c1", data: groups.tomorrow },
       { label: "🌅 Coming Soon", color: "#e98e07ff", data: groups.later },
+      { label: "⌛ Passed", color: "#888888", data: groups.passed },
     ];
 
     sections.forEach(section => {
@@ -478,11 +480,12 @@ function createBossCard(b, sectionColor) {
     }
     else if (diff > 0) {
       countdown.textContent = formatCountdown(b._ts);
+      card.style.borderLeftColor = sectionColor;
     }
     else {
-      countdown.textContent = "Spawn Passed";
-      countdown.style.color = "#777";
-      card.style.borderLeftColor = "#777";
+      countdown.textContent = "⌛ PASSED";
+      countdown.style.color = "#999";
+      card.style.borderLeftColor = "#888";
     }
 
   }, 1000);
