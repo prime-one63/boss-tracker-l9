@@ -457,8 +457,8 @@ function createBossCard(b, sectionColor) {
     const isHourBoss = b.bossHour && b.bossHour !== "null";
     const isScheduleBoss = b.bossSchedule && b.bossSchedule !== "null";
 
-    // Discord 10-min warning
-    if (diff > 0 && diff <= TEN_MIN) {
+    // Discord 10-min warning (narrow 2s window at the 10min mark)
+    if (diff > 0 && diff <= TEN_MIN && diff > (TEN_MIN - 2000)) {
       const warnRef = ref(db, `bosses/${b._key}/warned10m`);
       const result = await runTransaction(warnRef, cur => cur === true ? undefined : true);
       if (result.committed && !wasPingSent(`warn_${b._key}`)) {
@@ -487,8 +487,8 @@ function createBossCard(b, sectionColor) {
       }
     }
 
-    // Browser notification at 10-min mark
-    if (diff > 0 && diff <= TEN_MIN && notificationsEnabled && Notification.permission === "granted") {
+    // Browser notification at 10-min mark (narrow 2s window)
+    if (diff > (TEN_MIN - 2000) && diff <= TEN_MIN && notificationsEnabled && Notification.permission === "granted") {
       const nKey = `n_${b._key}`;
       if (!sessionStorage.getItem(nKey)) {
         new Notification(`⏳ ${b.bossName}`, {
