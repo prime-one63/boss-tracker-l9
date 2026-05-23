@@ -91,7 +91,6 @@ async function getWebhookUrl() {
 
 // Track sent pings to prevent duplicates across re-renders
 const _sentPings = new Set();
-const _pingCooldown = new Map();
 
 function markPingSent(key) {
   _sentPings.add(key);
@@ -107,13 +106,12 @@ function wasPingSent(key) {
   return false;
 }
 
-// Extra guard: boss-name cooldown to prevent duplicate-entried bosses
-function markBossNamePinged(name) {
-  _pingCooldown.set(name, Date.now());
-}
-function wasBossNamePingedRecently(name) {
-  const t = _pingCooldown.get(name);
-  return t && (Date.now() - t) < 60 * 60 * 1000;
+// Extra guard: boss-name + spawn-time cooldown (localStorage persists across refreshes)
+function isBossSpawnPinged(name, spawnTime) {
+  const key = `dc_${name}_${spawnTime}`;
+  if (localStorage.getItem(key)) return true;
+  localStorage.setItem(key, "1");
+  return false;
 }
 
 // Prevent double-delete of the same boss entry
@@ -470,13 +468,24 @@ function createBossCard(b, sectionColor) {
     const isHourBoss = b.bossHour && b.bossHour !== "null";
     const isScheduleBoss = b.bossSchedule && b.bossSchedule !== "null";
 
+    // Browser notification — fire immediately, not blocked by Discord await
+    if (diff > 0 && diff <= TEN_MIN && notificationsEnabled && Notification.permission === "granted") {
+      const nKey = `n_${b._key}`;
+      if (!sessionStorage.getItem(nKey)) {
+        new Notification(`⏳ ${b.bossName}`, {
+          body: `Spawning in ~10 min • Lv.${b.lvl} • ${b.guild}`,
+          icon: imgSrc
+        });
+        sessionStorage.setItem(nKey, "1");
+      }
+    }
+
     // Discord 10-min warning (narrow 2s window at the 10min mark)
     if (diff > 0 && diff <= TEN_MIN && diff > (TEN_MIN - 2000)) {
       const warnRef = ref(db, `bosses/${b._key}/warned10m`);
       const result = await runTransaction(warnRef, cur => cur === true ? undefined : true);
-      if (result.committed && !wasPingSent(`warn_${b._key}`) && !wasBossNamePingedRecently(b.bossName)) {
+      if (result.committed && !wasPingSent(`warn_${b._key}`) && !isBossSpawnPinged(b.bossName, b.nextSpawn)) {
         markPingSent(`warn_${b._key}`);
-        markBossNamePinged(b.bossName);
         sendDiscordMessage(discordTemplate(
           b.bossName,
           "⏳ Status: **Spawning in approximately 10 minutes!**",
@@ -490,27 +499,14 @@ function createBossCard(b, sectionColor) {
     if (diff <= 0 && diff > -1000) {
       const spawnRef = ref(db, `bosses/${b._key}/spawnedPinged`);
       const result = await runTransaction(spawnRef, cur => cur === true ? undefined : true);
-      if (result.committed && !wasPingSent(`spawn_${b._key}`) && !wasBossNamePingedRecently(b.bossName)) {
+      if (result.committed && !wasPingSent(`spawn_${b._key}`) && !isBossSpawnPinged(b.bossName, b.nextSpawn)) {
         markPingSent(`spawn_${b._key}`);
-        markBossNamePinged(b.bossName);
         sendDiscordMessage(discordTemplate(
           b.bossName,
           "🔥 Status: **SPAWNED!**",
           "🎖️ Level: " +"**"+ b.lvl +"**",
           "👑 Guild: " +"**"+ b.guild +"**"
         ));
-      }
-    }
-
-    // Browser notification at 10-min mark (narrow 2s window)
-    if (diff > (TEN_MIN - 2000) && diff <= TEN_MIN && notificationsEnabled && Notification.permission === "granted") {
-      const nKey = `n_${b._key}`;
-      if (!sessionStorage.getItem(nKey)) {
-        new Notification(`⏳ ${b.bossName}`, {
-          body: `Spawning in ~10 min • Lv.${b.lvl} • ${b.guild}`,
-          icon: imgSrc
-        });
-        sessionStorage.setItem(nKey, "1");
       }
     }
 
