@@ -1,5 +1,5 @@
 import { db } from "./firebase.js";
-import { ref, get, update, runTransaction } 
+import { ref, get, update, runTransaction, remove } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 
@@ -115,6 +115,9 @@ function wasBossNamePingedRecently(name) {
   const t = _pingCooldown.get(name);
   return t && (Date.now() - t) < 60 * 60 * 1000;
 }
+
+// Prevent double-delete of the same boss entry
+const _deletingKeys = new Set();
 
 async function sendDiscordMessage(msg) {
   const url = await getWebhookUrl();
@@ -509,6 +512,15 @@ function createBossCard(b, sectionColor) {
         });
         sessionStorage.setItem(nKey, "1");
       }
+    }
+
+    // Auto-delete at spawn time
+    if (diff <= 0 && diff > -3000 && !_deletingKeys.has(b._key)) {
+      _deletingKeys.add(b._key);
+      remove(ref(db, `bosses/${b._key}`));
+      card.style.transition = "opacity 0.5s";
+      card.style.opacity = "0";
+      setTimeout(() => { card.remove(); clearInterval(interval); }, 500);
     }
 
     if (diff <= 0 && diff > -FIVE_MIN) {
