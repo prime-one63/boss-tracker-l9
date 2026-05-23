@@ -322,7 +322,7 @@ async function fetchAndRenderBosses() {
       grid.style.transition = "max-height 0.4s ease, opacity 0.4s ease";
 
       // Apply staggered fade-in effect to boss cards
-section.data.forEach((b, index) => {
+section.data.filter(b => b.bossName).forEach((b, index) => {
   const card = createBossCard(b, section.color);
   card.style.animationDelay = `${index * 0.1}s`;
   grid.appendChild(card);

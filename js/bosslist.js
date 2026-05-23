@@ -227,6 +227,8 @@ export function initBossList() {
         const grid = document.getElementById("bossGrid");
         grid.innerHTML = "";
 
+        bosses = bosses.filter(b => b.bossName);
+
         bosses.sort((a, b) => {
             const ta = Date.parse(a.nextSpawn) || Infinity;
             const tb = Date.parse(b.nextSpawn) || Infinity;
@@ -253,7 +255,7 @@ export function initBossList() {
                 </div>
 
                 <div>Guild: ${b.guild || "Faction"}</div>
-                <div>Spawn: ${b.bossHour ? b.bossHour + "h" : b.bossSchedule}</div>
+                <div>Spawn: ${b.bossHour && b.bossHour !== "null" ? b.bossHour + "h" : (b.bossSchedule && b.bossSchedule !== "null" ? b.bossSchedule : "—")}</div>
 
                 <div>Next Spawn:</div>
                 <div>${b.nextSpawn || "--"}</div>
@@ -338,9 +340,14 @@ export function initBossList() {
 
         e.preventDefault();
 
+        const name = bossName.value.trim().toUpperCase();
+
+        if (!name) return alert("Boss name is required");
+        if (!nextSpawn.value) return alert("Next Spawn is required");
+
         const entry = {
 
-            bossName: bossName.value.trim().toUpperCase(),
+            bossName: name,
 
             bossHour: spawnHourType.checked ? bossHour.value : "null",
             bossSchedule: spawnScheduleType.checked ? bossSchedule.value : "null",
@@ -350,7 +357,9 @@ export function initBossList() {
 
             est: estimatedDeath.value,
             lvl: bossLevel.value,
-            guild: document.getElementById("guild").value
+            guild: document.getElementById("guild").value,
+            warned10m: false,
+            spawnedPinged: false
         };
 
         const key = editKey.value;
