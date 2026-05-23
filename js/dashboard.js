@@ -91,6 +91,7 @@ async function getWebhookUrl() {
 
 // Track sent pings to prevent duplicates across re-renders
 const _sentPings = new Set();
+const _pingCooldown = new Map();
 
 function markPingSent(key) {
   _sentPings.add(key);
@@ -104,6 +105,15 @@ function wasPingSent(key) {
     return true;
   }
   return false;
+}
+
+// Extra guard: boss-name cooldown to prevent duplicate-entried bosses
+function markBossNamePinged(name) {
+  _pingCooldown.set(name, Date.now());
+}
+function wasBossNamePingedRecently(name) {
+  const t = _pingCooldown.get(name);
+  return t && (Date.now() - t) < 60 * 60 * 1000;
 }
 
 async function sendDiscordMessage(msg) {
@@ -461,8 +471,9 @@ function createBossCard(b, sectionColor) {
     if (diff > 0 && diff <= TEN_MIN && diff > (TEN_MIN - 2000)) {
       const warnRef = ref(db, `bosses/${b._key}/warned10m`);
       const result = await runTransaction(warnRef, cur => cur === true ? undefined : true);
-      if (result.committed && !wasPingSent(`warn_${b._key}`)) {
+      if (result.committed && !wasPingSent(`warn_${b._key}`) && !wasBossNamePingedRecently(b.bossName)) {
         markPingSent(`warn_${b._key}`);
+        markBossNamePinged(b.bossName);
         sendDiscordMessage(discordTemplate(
           b.bossName,
           "⏳ Status: **Spawning in approximately 10 minutes!**",
@@ -476,8 +487,9 @@ function createBossCard(b, sectionColor) {
     if (diff <= 0 && diff > -1000) {
       const spawnRef = ref(db, `bosses/${b._key}/spawnedPinged`);
       const result = await runTransaction(spawnRef, cur => cur === true ? undefined : true);
-      if (result.committed && !wasPingSent(`spawn_${b._key}`)) {
+      if (result.committed && !wasPingSent(`spawn_${b._key}`) && !wasBossNamePingedRecently(b.bossName)) {
         markPingSent(`spawn_${b._key}`);
+        markBossNamePinged(b.bossName);
         sendDiscordMessage(discordTemplate(
           b.bossName,
           "🔥 Status: **SPAWNED!**",
