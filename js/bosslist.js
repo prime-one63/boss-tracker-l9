@@ -38,6 +38,7 @@ export function initBossList() {
     const bossLevel = document.getElementById("bossLevel");
 
     const btnRepopulate = document.getElementById("btnRepopulate");
+    const btnDeleteAll = document.getElementById("btnDeleteAll");
 
     const bossImageMap = {
         VENATUS: "img/venatus.png",
@@ -459,6 +460,23 @@ export function initBossList() {
 
     if (btnRepopulate) {
         btnRepopulate.addEventListener("click", handleRepopulate);
+    }
+
+    if (btnDeleteAll) {
+        btnDeleteAll.addEventListener("click", async () => {
+            if (!confirm("⚠️ DELETE ALL BOSSES? This cannot be undone!")) return;
+            if (!confirm("Are you sure? All boss entries will be permanently removed.")) return;
+            const snapshot = await get(ref(db, "bosses"));
+            if (!snapshot.exists()) return alert("No bosses to delete.");
+            let count = 0;
+            const updates = {};
+            snapshot.forEach(child => {
+                updates[child.key] = null;
+                count++;
+            });
+            await update(ref(db, "bosses"), updates);
+            alert(`Deleted ${count} bosses.`);
+        });
     }
 
     const btnBulkImport = document.getElementById("btnBulkImport");

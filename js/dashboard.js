@@ -1,5 +1,5 @@
 import { db } from "./firebase.js";
-import { ref, get, update, runTransaction, remove } 
+import { ref, get, update, runTransaction } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 
@@ -442,35 +442,6 @@ function createBossCard(b, sectionColor) {
   /* ======================
      🔹 COUNTDOWN + DISCORD + NOTIFICATION
   ====================== */
-
-  // Delete button
-  const delBtn = document.createElement("button");
-  delBtn.textContent = "✕";
-  delBtn.className = "card-del-btn";
-  delBtn.title = "Delete boss";
-  delBtn.onclick = async (e) => {
-    e.stopPropagation();
-    if (!isAuthorized) {
-      const entered = prompt("Enter admin access token:");
-      if (!entered) return;
-      try {
-        const snap = await get(ref(db, "tokens/" + entered.trim()));
-        if (!snap.exists() || snap.val() !== true) {
-          alert("❌ Invalid token");
-          return;
-        }
-        isAuthorized = true;
-      } catch {
-        alert("❌ Token check failed");
-        return;
-      }
-    }
-    if (confirm(`Delete ${b.bossName}?`)) {
-      await remove(ref(db, "bosses/" + b._key));
-    }
-  };
-  card.style.position = "relative";
-  card.appendChild(delBtn);
 
   const interval = setInterval(async () => {
 
