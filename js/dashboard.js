@@ -89,14 +89,20 @@ async function getWebhookUrl() {
   return _webhookLoading;
 }
 
-// Track recently sent messages to prevent rapid-fire duplicates
-const _recentPings = new Map();
+// Track sent pings to prevent duplicates across re-renders
+const _sentPings = new Set();
 
-function isDuplicatePing(key) {
-  const last = _recentPings.get(key);
-  const now = Date.now();
-  if (last && now - last < 30000) return true;
-  _recentPings.set(key, now);
+function markPingSent(key) {
+  _sentPings.add(key);
+  sessionStorage.setItem("dp_" + key, "1");
+}
+
+function wasPingSent(key) {
+  if (_sentPings.has(key)) return true;
+  if (sessionStorage.getItem("dp_" + key)) {
+    _sentPings.add(key);
+    return true;
+  }
   return false;
 }
 
@@ -455,12 +461,13 @@ function createBossCard(b, sectionColor) {
     if (diff > 0 && diff <= TEN_MIN) {
       const warnRef = ref(db, `bosses/${b._key}/warned10m`);
       const result = await runTransaction(warnRef, cur => cur === true ? undefined : true);
-      if (result.committed && !isDuplicatePing(`warn_${b._key}`)) {
+      if (result.committed && !wasPingSent(`warn_${b._key}`)) {
+        markPingSent(`warn_${b._key}`);
         sendDiscordMessage(discordTemplate(
           b.bossName,
           "⏳ Status: **Spawning in approximately 10 minutes!**",
           "🎖️ Level: " +"**"+ b.lvl +"**",
-          "👑 Guild: " +"**"+ b.guild + "**"
+          "👑 Guild: " +"**"+ b.guild +"**"
         ));
       }
     }
@@ -469,12 +476,13 @@ function createBossCard(b, sectionColor) {
     if (diff <= 0 && diff > -1000) {
       const spawnRef = ref(db, `bosses/${b._key}/spawnedPinged`);
       const result = await runTransaction(spawnRef, cur => cur === true ? undefined : true);
-      if (result.committed && !isDuplicatePing(`spawn_${b._key}`)) {
+      if (result.committed && !wasPingSent(`spawn_${b._key}`)) {
+        markPingSent(`spawn_${b._key}`);
         sendDiscordMessage(discordTemplate(
           b.bossName,
           "🔥 Status: **SPAWNED!**",
           "🎖️ Level: " +"**"+ b.lvl +"**",
-          "👑 Guild: " +"**"+ b.guild + "**"
+          "👑 Guild: " +"**"+ b.guild +"**"
         ));
       }
     }

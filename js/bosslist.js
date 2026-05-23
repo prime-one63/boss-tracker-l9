@@ -480,9 +480,14 @@ export function initBossList() {
     }
 
     const btnTodaySpawns = document.getElementById("btnTodaySpawns");
+    let todaySpawnsCooldown = false;
 
     if (btnTodaySpawns) {
         btnTodaySpawns.addEventListener("click", async () => {
+            if (todaySpawnsCooldown) return;
+            todaySpawnsCooldown = true;
+            btnTodaySpawns.disabled = true;
+
             const dailyWebhook = await getDailyWebhookUrl();
             if (!dailyWebhook) return alert("Daily webhook not configured. Add config/discordDailyWebhook in Firebase.");
 
@@ -556,7 +561,13 @@ export function initBossList() {
             }).then(r => {
                 if (r.ok) alert(`✅ Sent ${todayBosses.length} today's spawns to Discord`);
                 else alert("❌ Discord send failed: " + r.status);
-            }).catch(err => alert("❌ " + err.message));
+            }).catch(err => alert("❌ " + err.message))
+              .finally(() => {
+                  setTimeout(() => {
+                      todaySpawnsCooldown = false;
+                      if (btnTodaySpawns) btnTodaySpawns.disabled = false;
+                  }, 5000);
+              });
         });
     }
 
@@ -583,31 +594,56 @@ export function initBossList() {
     const bulkImportForm = document.getElementById("bulkImportForm");
     const bulkImportData = document.getElementById("bulkImportData");
     const bulkImportModal = document.getElementById("bulkImportModal");
+    const btnBulkImportSubmit = document.getElementById("btnBulkImportSubmit");
+    let bulkImportCooldown = false;
 
     if (bulkImportForm) {
         bulkImportForm.addEventListener("submit", async e => {
             e.preventDefault();
+            if (bulkImportCooldown) return;
+
             const data = bulkImportData.value;
             const dateInput = document.getElementById("bulkImportDate").value;
 
             if (!data.trim()) return alert("Please paste boss data");
             if (!dateInput) return alert("Please select a date");
 
+            bulkImportCooldown = true;
+            if (btnBulkImportSubmit) btnBulkImportSubmit.disabled = true;
+
             const bossesRef = ref(db, "bosses");
             const results = handleBulkImport(data, dateInput);
             let added = 0;
+            const dupes = [];
 
             for (const entry of results) {
+                // Check if boss with same name and nextSpawn already exists
+                const exists = Object.values(bossCache).some(
+                    b => b.bossName === entry.bossName && b.nextSpawn === entry.nextSpawn
+                );
+                if (exists) {
+                    dupes.push(entry.bossName);
+                    continue;
+                }
                 await push(bossesRef, entry);
                 added++;
             }
 
-            alert(`${added} bosses imported`);
-            bulkImportData.value = "";
-            document.getElementById("bulkImportDate").value = "";
-            const modal = bootstrap.Modal.getInstance(bulkImportModal);
-            if (modal) modal.hide();
-            renderBossCards(Object.values(bossCache));
+            let msg = `${added} bosses imported`;
+            if (dupes.length > 0) msg += `. ${dupes.length} duplicates skipped`;
+            alert(msg);
+
+            if (added > 0) {
+                bulkImportData.value = "";
+                document.getElementById("bulkImportDate").value = "";
+                const modal = bootstrap.Modal.getInstance(bulkImportModal);
+                if (modal) modal.hide();
+            }
+
+            setTimeout(() => {
+                bulkImportCooldown = false;
+                if (btnBulkImportSubmit) btnBulkImportSubmit.disabled = false;
+            }, 3000);
         });
     }
 
