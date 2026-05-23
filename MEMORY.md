@@ -1,0 +1,3 @@
+- [Added date picker to bulk import modal](bosslist.html) — Added date input field for selecting the import date
+- [Updated bulk import to use +8 timezone](js/bosslist.js) — Modified handleBulkImport to convert input times from +7 to +8 by adding 60 minutes
+- [Updated bulk import to use selected date](js/bosslist.js) — Use selected date as base for lastKilled and nextSpawn calculations

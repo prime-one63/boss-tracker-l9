@@ -61,7 +61,6 @@ navBossList.addEventListener("click", async () => {
    🔹 CONSTANTS
 ====================== */
 
-const DISCORD_WEBHOOK = "";
 const TEN_MIN = 10 * 60000;
 const FIVE_MIN = 5 * 60000;
 
@@ -72,8 +71,39 @@ const countdownTimers = new Map();
    🔹 DISCORD
 ====================== */
 
-function sendDiscordMessage(msg) {
-  fetch(DISCORD_WEBHOOK, {
+let _webhookUrl = null;
+let _webhookLoading = null;
+
+async function getWebhookUrl() {
+  if (_webhookUrl !== null) return _webhookUrl;
+  if (_webhookLoading) return _webhookLoading;
+  _webhookLoading = (async () => {
+    try {
+      const snap = await get(ref(db, "config/discordWebhook"));
+      _webhookUrl = snap.val() || "";
+    } catch {
+      _webhookUrl = "";
+    }
+    return _webhookUrl;
+  })();
+  return _webhookLoading;
+}
+
+// Track recently sent messages to prevent rapid-fire duplicates
+const _recentPings = new Map();
+
+function isDuplicatePing(key) {
+  const last = _recentPings.get(key);
+  const now = Date.now();
+  if (last && now - last < 30000) return true;
+  _recentPings.set(key, now);
+  return false;
+}
+
+async function sendDiscordMessage(msg) {
+  const url = await getWebhookUrl();
+  if (!url) return;
+  fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ content: msg })
@@ -120,6 +150,15 @@ function formatWithTimezone(date) {
     timeStyle: "short",
     hour12: true,
   });
+}
+
+function getDisplayDate(date) {
+  if (displayOffset === "local") {
+    return new Date(date.getTime());
+  }
+  const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+  const adjusted = new Date(utc + displayOffset * 3600000);
+  return adjusted;
 }
 
 function formatCountdown(targetMs) {
@@ -185,9 +224,11 @@ async function fetchAndRenderBosses() {
     }
 
     const now = new Date();
-    const today = now.getDate();
-    const tomorrowDate = new Date(now);
-    tomorrowDate.setDate(today + 1);
+    const displayNow = getDisplayDate(now);
+    const today = { y: displayNow.getFullYear(), m: displayNow.getMonth(), d: displayNow.getDate() };
+    const tomorrowDisplay = new Date(displayNow);
+    tomorrowDisplay.setDate(tomorrowDisplay.getDate() + 1);
+    const tomorrow = { y: tomorrowDisplay.getFullYear(), m: tomorrowDisplay.getMonth(), d: tomorrowDisplay.getDate() };
 
     const bosses = [];
 
@@ -212,11 +253,12 @@ async function fetchAndRenderBosses() {
 
     bosses.forEach(b => {
       const nextDate = new Date(b._ts);
+      const displayNext = getDisplayDate(nextDate);
       const diff = b._ts - Date.now();
 
       if (diff <= TEN_MIN && diff > -FIVE_MIN) groups.soon.push(b);
-      else if (nextDate.getDate() === today) groups.today.push(b);
-      else if (nextDate.getDate() === tomorrowDate.getDate()) groups.tomorrow.push(b);
+      else if (displayNext.getFullYear() === today.y && displayNext.getMonth() === today.m && displayNext.getDate() === today.d) groups.today.push(b);
+      else if (displayNext.getFullYear() === tomorrow.y && displayNext.getMonth() === tomorrow.m && displayNext.getDate() === tomorrow.d) groups.tomorrow.push(b);
       else groups.later.push(b);
     });
 
@@ -319,6 +361,7 @@ function createBossCard(b, sectionColor) {
     GENAQULUES: "img/gen_aquleus.png",
     GENERALAQULES: "img/gen_aquleus.png",
     GENAQULEUS: "img/gen_aquleus.png",
+    GENERALAQULEUS: "img/gen_aquleus.png",
     AURAQ: "img/auraq_fool.png",
     MILAVY: "img/milavy.png",
     CHAIFLOCK: "img/chaiflock.png",
@@ -405,7 +448,7 @@ function createBossCard(b, sectionColor) {
     if (diff > 0 && diff <= TEN_MIN) {
       const warnRef = ref(db, `bosses/${b._key}/warned10m`);
       const result = await runTransaction(warnRef, cur => cur === true ? undefined : true);
-      if (result.committed) {
+      if (result.committed && !isDuplicatePing(`warn_${b._key}`)) {
         sendDiscordMessage(discordTemplate(
           b.bossName,
           "⏳ Status: **Spawning in approximately 10 minutes!**",
@@ -418,7 +461,7 @@ function createBossCard(b, sectionColor) {
     if (diff <= 0 && diff > -1000) {
       const spawnRef = ref(db, `bosses/${b._key}/spawnedPinged`);
       const result = await runTransaction(spawnRef, cur => cur === true ? undefined : true);
-      if (result.committed) {
+      if (result.committed && !isDuplicatePing(`spawn_${b._key}`)) {
         sendDiscordMessage(discordTemplate(
           b.bossName,
           "🔥 Status: **SPAWNED!**",

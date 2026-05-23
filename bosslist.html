@@ -5,9 +5,43 @@
       <button id="btnRepopulate" class="btn btn-success btn-sm">
         ♻ Repopulate Schedule
       </button>
+      <button id="btnBulkImport" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#bulkImportModal">
+        📥 Bulk Import
+      </button>
       <button id="btnAdd" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bossModal">
         ➕ Add Boss
       </button>
+    </div>
+  </div>
+
+  <!-- Bulk Import Modal -->
+  <div class="modal fade" id="bulkImportModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="bulkImportForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Bulk Import Boss Times</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Select Date for Import</label>
+              <input type="date" class="form-control" id="bulkImportDate" value="">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Paste boss times (format: • HH:MM — BossName)</label>
+              <textarea class="form-control" id="bulkImportData" rows="12" placeholder="• 00:19 — Venatus — เวนาดัส
+• 00:21 — Vioren — วีโอเลนท์
+• 00:31 — Lady Dalia — เลดี้ดาเลีย"></textarea>
+            </div>
+            <small class="text-muted">Spawn intervals are auto-detected from multiple times per boss. Times are in military format (24h). Input in +7 timezone — automatically converted to +8 (+1 hour).</small>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-warning">Import</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 

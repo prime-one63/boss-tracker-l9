@@ -1,0 +1,12 @@
+{
+  "name": "l9-madness-boss-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js --dev"
+  },
+  "devDependencies": {
+    "terser": "^5.31.0"
+  }
+}

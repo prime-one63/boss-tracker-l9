@@ -60,6 +60,7 @@ export function initBossList() {
         GENAQULUES: "img/gen_aquleus.png",
         GENERALAQULES: "img/gen_aquleus.png",
         GENAQULEUS: "img/gen_aquleus.png",
+        GENERALAQULEUS: "img/gen_aquleus.png",
         AURAQ: "img/auraq_fool.png",
         MILAVY: "img/milavy.png",
         CHAIFLOCK: "img/chaiflock.png",
@@ -69,6 +70,7 @@ export function initBossList() {
         SHULIAR: "img/shuliar.png",
         LARBA: "img/larba_fool.png",
         BARON: "img/baron_fool.png",
+        BARONBRAUDMORE: "img/baron_fool.png",
         CATENA: "img/catena.png",
         ORDO: "img/ordo.png",
         SECRETA: "img/secreta.png",
@@ -457,6 +459,125 @@ export function initBossList() {
 
     if (btnRepopulate) {
         btnRepopulate.addEventListener("click", handleRepopulate);
+    }
+
+    const btnBulkImport = document.getElementById("btnBulkImport");
+    const bulkImportForm = document.getElementById("bulkImportForm");
+    const bulkImportData = document.getElementById("bulkImportData");
+    const bulkImportModal = document.getElementById("bulkImportModal");
+
+    if (bulkImportForm) {
+        bulkImportForm.addEventListener("submit", async e => {
+            e.preventDefault();
+            const data = bulkImportData.value;
+            const dateInput = document.getElementById("bulkImportDate").value;
+
+            if (!data.trim()) return alert("Please paste boss data");
+            if (!dateInput) return alert("Please select a date");
+
+            const bossesRef = ref(db, "bosses");
+            const results = handleBulkImport(data, dateInput);
+            let added = 0;
+
+            for (const entry of results) {
+                await push(bossesRef, entry);
+                added++;
+            }
+
+            alert(`${added} bosses imported`);
+            bulkImportData.value = "";
+            document.getElementById("bulkImportDate").value = "";
+            const modal = bootstrap.Modal.getInstance(bulkImportModal);
+            if (modal) modal.hide();
+            renderBossCards(Object.values(bossCache));
+        });
+    }
+
+    function parseBulkImportData(data) {
+        const bossTimes = {};
+        const lines = data.trim().split("\n");
+
+        for (const line of lines) {
+            const match = line.match(/•\s*(\d{2}:\d{2})\s*[-—–]\s*([A-Za-z][A-Za-z\s]*?)(?:\s*[-—–]|$)/);
+            if (!match) continue;
+
+            const [_, timeStr, bossNameRaw] = match;
+            const bossName = bossNameRaw.trim().toUpperCase();
+            const [hour, minute] = timeStr.split(":").map(Number);
+            const totalMinutes = hour * 60 + minute;
+
+            if (!bossTimes[bossName]) bossTimes[bossName] = [];
+            bossTimes[bossName].push(totalMinutes);
+        }
+
+        const results = [];
+        for (const [bossName, times] of Object.entries(bossTimes)) {
+            times.sort((a, b) => a - b);
+
+            let hours = 10;
+
+            if (times.length > 1) {
+                const intervals = [];
+                for (let i = 1; i < times.length; i++) {
+                    intervals.push(times[i] - times[i - 1]);
+                }
+                if (intervals.length > 0) {
+                    const avgInterval = Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length);
+                    hours = Math.max(1, Math.min(24, Math.round(avgInterval / 60)));
+                }
+            }
+
+            const latestTime = times[times.length - 1];
+            results.push({
+                bossName,
+                bossHour: String(hours),
+                latestTimeMinutes: latestTime
+            });
+        }
+
+        return results;
+    }
+
+    function handleBulkImport(bossData, dateInput) {
+        const parsed = parseBulkImportData(bossData);
+
+        // Parse selected date (YYYY-MM-DD)
+        const [year, month, day] = dateInput.split("-").map(Number);
+
+        const timestamp = Date.now();
+        const results = [];
+
+        for (const entry of parsed) {
+            const { bossName, bossHour, latestTimeMinutes } = entry;
+
+            // Input times are in +7, convert to +8 by adding 60 minutes
+            const adjustedMinutes = latestTimeMinutes + 60;
+            const hours = Math.floor(adjustedMinutes / 60) % 24;
+            const minutes = adjustedMinutes % 60;
+            const dayOffset = Math.floor(adjustedMinutes / (24 * 60));
+
+            // Create date in local timezone (+8) — this is the spawn time
+            const spawnDate = new Date(year, month - 1, day + dayOffset, hours, minutes, 0, 0);
+
+            const hoursInterval = parseInt(bossHour);
+
+            results.push({
+                id: `bulk_${timestamp}_${bossName}`,
+                bossName: bossName,
+                guild: "Faction",
+                lvl: "70",
+                est: "2",
+                bossHour: String(hoursInterval),
+                bossSchedule: "null",
+                lastKilled: "",
+                nextSpawn: spawnDate.toISOString(),
+                warned10m: false,
+                spawnedPinged: false,
+                cycleReset: false
+            });
+        }
+
+        return results;
     }
 
     function updateSpawnTypeUI() {
