@@ -533,7 +533,7 @@ function createBossCard(b, sectionColor) {
       card.style.borderLeftColor = sectionColor;
     }
     else {
-      countdown.textContent = "⌛ PASSED";
+      countdown.textContent = "💀 TERMINATED";
       countdown.style.color = "#999";
       card.style.borderLeftColor = "#888";
     }

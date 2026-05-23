@@ -690,12 +690,14 @@ export function initBossList() {
                 }
             }
 
-            const latestTime = times[times.length - 1];
-            results.push({
-                bossName,
-                bossHour: String(hours),
-                latestTimeMinutes: latestTime
-            });
+            // Create one result per spawn time (not just the latest)
+            for (const timeMinutes of times) {
+                results.push({
+                    bossName,
+                    bossHour: String(hours),
+                    latestTimeMinutes: timeMinutes
+                });
+            }
         }
 
         return results;
@@ -709,6 +711,7 @@ export function initBossList() {
 
         const timestamp = Date.now();
         const results = [];
+        let seq = 0;
 
         for (const entry of parsed) {
             const { bossName, bossHour, latestTimeMinutes } = entry;
@@ -719,13 +722,13 @@ export function initBossList() {
             const minutes = adjustedMinutes % 60;
             const dayOffset = Math.floor(adjustedMinutes / (24 * 60));
 
-            // Create date in local timezone (+8) — this is the spawn time
+            // Create date in localtime zone (+8) — this is the spawn time
             const spawnDate = new Date(year, month - 1, day + dayOffset, hours, minutes, 0, 0);
 
             const hoursInterval = parseInt(bossHour);
 
             results.push({
-                id: `bulk_${timestamp}_${bossName}`,
+                id: `bulk_${timestamp}_${seq++}`,
                 bossName: bossName,
                 guild: "Faction",
                 lvl: "70",
