@@ -479,6 +479,106 @@ export function initBossList() {
         });
     }
 
+    const btnTodaySpawns = document.getElementById("btnTodaySpawns");
+
+    if (btnTodaySpawns) {
+        btnTodaySpawns.addEventListener("click", async () => {
+            const dailyWebhook = await getDailyWebhookUrl();
+            if (!dailyWebhook) return alert("Daily webhook not configured. Add config/discordDailyWebhook in Firebase.");
+
+            // Get today's date in +8
+            const now = new Date();
+            const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+            const today = new Date(utc + 8 * 3600000);
+
+            const bosses = Object.values(bossCache);
+            const todayBosses = [];
+
+            for (const b of bosses) {
+                if (!b.nextSpawn) continue;
+                const nextSpawn = new Date(b.nextSpawn);
+                if (isNaN(nextSpawn.getTime())) continue;
+                const spawnUtc = nextSpawn.getTime() + nextSpawn.getTimezoneOffset() * 60000;
+                const spawnDisplay = new Date(spawnUtc + 8 * 3600000);
+
+                if (spawnDisplay.getFullYear() === today.getFullYear() &&
+                    spawnDisplay.getMonth() === today.getMonth() &&
+                    spawnDisplay.getDate() === today.getDate()) {
+
+                    const h = spawnDisplay.getHours();
+                    const m = spawnDisplay.getMinutes();
+                    const ampm = h >= 12 ? "PM" : "AM";
+                    const h12 = h % 12 || 12;
+                    const timeStr = `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
+                    const totalMin = h * 60 + m;
+
+                    todayBosses.push({ ...b, spawnTime: timeStr, totalMin, h, m });
+                }
+            }
+
+            if (todayBosses.length === 0) return alert("No bosses spawning today.");
+
+            todayBosses.sort((a, b) => a.totalMin - b.totalMin);
+
+            // Build the full message
+            const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+            let msg = `@here\n\n📅 Today's Boss Spawns — ${dateStr}\n\n\`\`\``;
+            const namePad = Math.max(...todayBosses.map(b => (b.bossName || "Unknown").length), 12);
+            msg += `${"Boss Name".padEnd(namePad)} | Spawn Time\n`;
+            msg += `${"-".repeat(namePad)}-|-----------\n`;
+
+            const blocks = [
+                { label: "00:01-06:00", min: 1, max: 360 },
+                { label: "06:01-12:00", min: 361, max: 720 },
+                { label: "12:01-18:00", min: 721, max: 1080 },
+                { label: "18:01-00:00", min: 1081, max: 1440 },
+            ];
+
+            let firstBlock = true;
+            for (const block of blocks) {
+                const blockBosses = todayBosses.filter(b => b.totalMin >= block.min && b.totalMin <= block.max);
+                if (blockBosses.length === 0) continue;
+                if (!firstBlock) msg += `\n`;
+                firstBlock = false;
+                msg += `${block.label}\n`;
+                for (const b of blockBosses) {
+                    const name = (b.bossName || "Unknown").padEnd(namePad);
+                    msg += `${name} | ${b.spawnTime}\n`;
+                }
+            }
+
+            msg += `\`\`\`\nTotal: ${todayBosses.length} boss(es) spawning today`;
+
+            fetch(dailyWebhook, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: msg })
+            }).then(r => {
+                if (r.ok) alert(`✅ Sent ${todayBosses.length} today's spawns to Discord`);
+                else alert("❌ Discord send failed: " + r.status);
+            }).catch(err => alert("❌ " + err.message));
+        });
+    }
+
+    // Cache for daily webhook URL
+    let _dailyWebhookUrl = null;
+    let _dailyWebhookLoading = null;
+
+    async function getDailyWebhookUrl() {
+        if (_dailyWebhookUrl !== null) return _dailyWebhookUrl;
+        if (_dailyWebhookLoading) return _dailyWebhookLoading;
+        _dailyWebhookLoading = (async () => {
+            try {
+                const snap = await get(ref(db, "config/discordDailyWebhook"));
+                _dailyWebhookUrl = snap.val() || "";
+            } catch {
+                _dailyWebhookUrl = "";
+            }
+            return _dailyWebhookUrl;
+        })();
+        return _dailyWebhookLoading;
+    }
+
     const btnBulkImport = document.getElementById("btnBulkImport");
     const bulkImportForm = document.getElementById("bulkImportForm");
     const bulkImportData = document.getElementById("bulkImportData");
