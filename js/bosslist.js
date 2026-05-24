@@ -82,6 +82,35 @@ export function initBossList() {
         TUMIER: "img/tumier.png"
     };
 
+    const bossMasterData = {
+        "ARANEO": { lvl: "75", guild: "Faction", bossHour: "24", bossSchedule: "SPAWNABLE" },
+        "LIVERA": { lvl: "75", guild: "Faction", bossHour: "24", bossSchedule: "SPAWNABLE" },
+        "EGO": { lvl: "70", guild: "Faction", bossHour: "21", bossSchedule: "SPAWNABLE" },
+        "UNDOMIEL": { lvl: "80", guild: "Faction", bossHour: "24", bossSchedule: "SPAWNABLE" },
+        "METUS": { lvl: "93", guild: "Faction", bossHour: "48", bossSchedule: "SPAWNABLE" },
+        "DUPLICAN": { lvl: "93", guild: "Faction", bossHour: "48", bossSchedule: "SPAWNABLE" },
+        "WANNITAS": { lvl: "93", guild: "Faction", bossHour: "48", bossSchedule: "SPAWNABLE" },
+        "LADY DALIA": { lvl: "85", guild: "Faction", bossHour: "18", bossSchedule: "SPAWNABLE" },
+        "LARBA": { lvl: "98", guild: "Faction", bossHour: "35", bossSchedule: "SPAWNABLE" },
+        "GEN. AQULUES": { lvl: "85", guild: "Faction", bossHour: "29", bossSchedule: "SPAWNABLE" },
+        "GENER ALAQULEUS": { lvl: "85", guild: "Faction", bossHour: "29", bossSchedule: "SPAWNABLE" },
+        "VENATUS": { lvl: "60", guild: "Faction", bossHour: "10", bossSchedule: "SPAWNABLE" },
+        "SHULIAR": { lvl: "95", guild: "Faction", bossHour: "35", bossSchedule: "SPAWNABLE" },
+        "AMENTIS": { lvl: "88", guild: "Faction", bossHour: "29", bossSchedule: "SPAWNABLE" },
+        "VIORENT": { lvl: "65", guild: "Faction", bossHour: "10", bossSchedule: "SPAWNABLE" },
+        "VIOREN": { lvl: "65", guild: "Faction", bossHour: "10", bossSchedule: "SPAWNABLE" },
+        "BARON": { lvl: "88", guild: "Faction", bossHour: "32", bossSchedule: "SPAWNABLE" },
+        "BARON BRAUDMORE": { lvl: "88", guild: "Faction", bossHour: "32", bossSchedule: "SPAWNABLE" },
+        "TITORE": { lvl: "98", guild: "Faction", bossHour: "37", bossSchedule: "SPAWNABLE" },
+        "SUPORE": { lvl: "100", guild: "Faction", bossHour: "62", bossSchedule: "SPAWNABLE" },
+        "ASTA": { lvl: "100", guild: "Faction", bossHour: "62", bossSchedule: "SPAWNABLE" },
+        "ORDO": { lvl: "100", guild: "Faction", bossHour: "62", bossSchedule: "SPAWNABLE" },
+        "CATENA": { lvl: "100", guild: "Faction", bossHour: "35", bossSchedule: "SPAWNABLE" },
+        "GARETH": { lvl: "98", guild: "Faction", bossHour: "32", bossSchedule: "SPAWNABLE" },
+        "SECRETA": { lvl: "100", guild: "Faction", bossHour: "62", bossSchedule: "SPAWNABLE" },
+
+    };
+
     const fixedScheduleBosses = [
         { bossName: "CLEMANTIS", guild: "Faction", bossSchedule: "Monday 11:30, Thursday 19:00", lvl: "70", est: "2" },
         { bossName: "LIBITINA", guild: "Faction", bossSchedule: "Monday 21:00, Saturday 21:00", lvl: "130", est: "2" },
@@ -95,7 +124,8 @@ export function initBossList() {
         { bossName: "AURAQ", guild: "Faction", bossSchedule: "Friday 22:00, Wednesday 21:00", lvl: "100", est: "2" },
         { bossName: "CHAIFLOCK", guild: "Faction", bossSchedule: "Saturday 22:00", lvl: "120", est: "2" },
         { bossName: "BENJI", guild: "Faction", bossSchedule: "Sunday 21:00", lvl: "120", est: "2" },
-        { bossName: "TUMIER", guild: "Faction", bossSchedule: "Sunday 19:00", lvl: "140", est: "2" }
+        { bossName: "TUMIER", guild: "Faction", bossSchedule: "Sunday 19:00", lvl: "140", est: "2" },
+        { bossName: "TUMIA", guild: "Faction", bossSchedule: "Sunday 19:00", lvl: "140", est: "2" }
     ];
 
     function toISO(dateStr) {
@@ -714,7 +744,15 @@ export function initBossList() {
         let seq = 0;
 
         for (const entry of parsed) {
-            const { bossName, bossHour, latestTimeMinutes } = entry;
+            const { bossName, bossHour: calcBossHour, latestTimeMinutes } = entry;
+
+            // Look up boss in master data or fixedScheduleBosses, fall back to defaults
+            const master = bossMasterData[bossName] || fixedScheduleBosses.find(f => f.bossName.toUpperCase() === bossName);
+            const lvl = master ? master.lvl : "70";
+            const guild = master ? master.guild : "Faction";
+            const isHourBased = master ? !!(master.bossHour && master.bossHour !== "null") : true;
+            const finalBossHour = isHourBased ? master.bossHour : String(calcBossHour);
+            const bossSchedule = !isHourBased ? master.bossSchedule : "null";
 
             // Input times are in +7, convert to +8 by adding 60 minutes
             const adjustedMinutes = latestTimeMinutes + 60;
@@ -725,16 +763,14 @@ export function initBossList() {
             // Create date in localtime zone (+8) — this is the spawn time
             const spawnDate = new Date(year, month - 1, day + dayOffset, hours, minutes, 0, 0);
 
-            const hoursInterval = parseInt(bossHour);
-
             results.push({
                 id: `bulk_${timestamp}_${seq++}`,
                 bossName: bossName,
-                guild: "Faction",
-                lvl: "70",
-                est: "2",
-                bossHour: String(hoursInterval),
-                bossSchedule: "null",
+                guild: guild,
+                lvl: lvl,
+                est: master?.est || "2",
+                bossHour: isHourBased ? finalBossHour : "null",
+                bossSchedule: bossSchedule,
                 lastKilled: "",
                 nextSpawn: spawnDate.toISOString(),
                 warned10m: false,

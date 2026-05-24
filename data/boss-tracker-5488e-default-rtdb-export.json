@@ -1,0 +1,193 @@
+{
+  "bosses": {
+    "-OcJX6nNK9h8beI6SgV_": {
+      "bossHour": "24",
+      "bossName": "ARANEO",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "75"
+    },
+    "-OcJXC4k9kbDkjTWizlS": {
+      "bossHour": "24",
+      "bossName": "LIVERA",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "75"
+    },
+    "-OcJXK6cTJ2GoidiqKNz": {
+      "bossHour": "21",
+      "bossName": "EGO",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "70"
+    },
+    "-OcJXSYF86q5arV4asT0": {
+      "bossHour": "24",
+      "bossName": "UNDOMIEL",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "80"
+    },
+    "-OcJXg9GHK5ONTbyjrtr": {
+      "bossHour": "48",
+      "bossName": "METUS",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "93"
+    },
+    "-OcJXmrsEDaD0D7u0wTV": {
+      "bossHour": "48",
+      "bossName": "DUPLICAN",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "93"
+    },
+    "-OcJXvzNy06RoY8mFzd-": {
+      "bossHour": "48",
+      "bossName": "WANNITAS",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "93"
+    },
+    "-OcJYtsjoF28bJ9HDx_k": {
+      "bossHour": "18",
+      "bossName": "LADY DALIA",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "85"
+    },
+    "-OcP-fl-0T0BlYSM3NW2": {
+      "bossHour": "35",
+      "bossName": "LARBA",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "98"
+    },
+    "-OcQhMjym87X_b97Zc2V": {
+      "bossHour": "29",
+      "bossName": "GEN. AQULUES",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "85"
+    },
+    "-OcRrp2H4napgbjz2bQ7": {
+      "bossHour": "10",
+      "bossName": "VENATUS",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "60"
+    },
+    "-OdRNhsfcgTWEwpX4Rkr": {
+      "bossHour": "35",
+      "bossName": "SHULIAR",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "95"
+    },
+    "-OdRrfKJhkjzg074HrH1": {
+      "bossHour": "29",
+      "bossName": "AMENTIS",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "88"
+    },
+    "-OdTJqBxyWlBcioVVmRm": {
+      "bossHour": "10",
+      "bossName": "VIORENT",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "65"
+    },
+    "-OdY4yBG_aBma_GLcgHQ": {
+      "bossHour": "32",
+      "bossName": "BARON",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "88"
+    },
+    "-Okut5nMXFYdlyEIveCO": {
+      "bossHour": "37",
+      "bossName": "TITORE",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "98"
+    },
+    "-Okutl6tqzMA5q0gjiiW": {
+      "bossHour": "62",
+      "bossName": "SUPORE",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "100"
+    },
+    "-OkutxVAKSIzhw4JdSvi": {
+      "bossHour": "62",
+      "bossName": "ASTA",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "100"
+    },
+    "-Okuu5r9GbrlvpzEACuE": {
+      "bossHour": "62",
+      "bossName": "ORDO",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "100"
+    },
+    "-OkvTNs9swJbmUQ6SGRF": {
+      "bossHour": "35",
+      "bossName": "CATENA",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "100"
+    },
+    "-Ol06fqsNmcgVOazO2cD": {
+      "bossHour": "32",
+      "bossName": "GARETH",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "98"
+    },
+    "-Ol6HUjAxhMjTCJMp8lw": {
+      "bossHour": "62",
+      "bossName": "SECRETA",
+      "bossSchedule": "SPAWNABLE",
+      "guild": "Faction",
+      "lvl": "100"
+    },
+    "-Onlu7jsnpneo3GDYXPZ": {
+      "bossHour": "null",
+      "bossName": "LIBITINA",
+      "bossSchedule": "SCHEDULED",
+      "guild": "Faction",
+      "lvl": "130"
+    },
+    "-Onlu7nprp_GzbAO21T1": {
+      "bossHour": "null",
+      "bossName": "MILAVY",
+      "bossSchedule": "SCHEDULED",
+      "guild": "Faction",
+      "lvl": "90"
+    },
+    "-Onlu7oOR86QwDN6iyG5": {
+      "bossHour": "null",
+      "bossName": "RINGOR",
+      "bossSchedule": "SCHEDULED",
+      "guild": "Faction",
+      "lvl": "95"
+    },
+    "-Onlu7qbBSpn7DXbHjLm": {
+      "bossHour": "null",
+      "bossName": "CHAIFLOCK",
+      "bossSchedule": "SCHEDULED",
+      "guild": "Faction",
+      "lvl": "120"
+    },
+    "-Onlwq3OToyIPhARLc5l": {
+      "bossHour": "null",
+      "bossName": "BENJI",
+      "bossSchedule": "SCHEDULED",
+      "guild": "Faction",
+      "lvl": "120"
+    }
+  }
+}
