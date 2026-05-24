@@ -375,6 +375,7 @@ function createBossCard(b, sectionColor) {
     METUS: "img/metus_fool.png",
     AMENTIS: "img/amentis.png",
     CLEMANTIS: "img/clemantis.png",
+    CLEMENTIS: "img/clemantis.png",
     TITORE: "img/titore.png",
     GARETH: "img/gareth.png",
     LADYDALIA: "img/lady_dalia.png",
