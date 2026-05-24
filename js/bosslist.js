@@ -751,7 +751,7 @@ export function initBossList() {
             const lvl = master ? master.lvl : "70";
             const guild = master ? master.guild : "Faction";
             const isHourBased = master ? !!(master.bossHour && master.bossHour !== "null") : true;
-            const finalBossHour = isHourBased ? master.bossHour : String(calcBossHour);
+            const finalBossHour = master && isHourBased ? master.bossHour : String(calcBossHour);
             const bossSchedule = !isHourBased ? master.bossSchedule : "null";
 
             // Input times are in +7, convert to +8 by adding 60 minutes
