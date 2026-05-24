@@ -55,6 +55,7 @@ export function initBossList() {
         METUS: "img/metus_fool.png",
         AMENTIS: "img/amentis.png",
         CLEMANTIS: "img/clemantis.png",
+        CLEMENTIS: "img/clemantis.png",
         TITORE: "img/titore.png",
         GARETH: "img/gareth.png",
         LADYDALIA: "img/lady_dalia.png",
@@ -113,6 +114,7 @@ export function initBossList() {
 
     const fixedScheduleBosses = [
         { bossName: "CLEMANTIS", guild: "Faction", bossSchedule: "Monday 11:30, Thursday 19:00", lvl: "70", est: "2" },
+        { bossName: "CLEMENTIS", guild: "Faction", bossSchedule: "Monday 11:30, Thursday 19:00", lvl: "70", est: "2" },
         { bossName: "LIBITINA", guild: "Faction", bossSchedule: "Monday 21:00, Saturday 21:00", lvl: "130", est: "2" },
         { bossName: "RAKAJETH", guild: "Faction", bossSchedule: "Tuesday 22:00, Sunday 19:00", lvl: "130", est: "2" },
         { bossName: "SAPHIRUS", guild: "Faction", bossSchedule: "Sunday 17:00, Tuesday 11:30", lvl: "80", est: "2" },
